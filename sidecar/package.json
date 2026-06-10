@@ -1,0 +1,11 @@
+{
+  "name": "consensus-seal-sidecar",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Runtime enforcement sidecar for the consensus-lean Consensus Seal: gates MCP tools/call against the proved quorum check.",
+  "scripts": {
+    "demo": "node demo.mjs"
+  },
+  "license": "MIT"
+}

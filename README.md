@@ -87,8 +87,11 @@ certificates the checker accepts against the same configuration must carry the s
 so an MCP Consensus-Seal sidecar can run `check` on every gated action and is guaranteed
 never to discharge two conflicting ones. `cert_agreement_cross` carries the guarantee
 across a reconfiguration given a decidable overlap witness. This is the reject-or-discharge
-core; wiring it into the MCP transport (alongside [mcp-seal](https://github.com/velvetmonkey/mcp-seal))
-is the remaining integration step, not new mathematics.
+core. A working enforcement sidecar lives in [`sidecar/`](sidecar/): a dependency-free
+Node gate that admits an MCP `tools/call` only if its certificate passes `check` against a
+trusted pinned roster (fail-closed, like [mcp-seal](https://github.com/velvetmonkey/mcp-seal)),
+with a conformance harness that pins the runtime verdicts to the Lean proof. Full MCP
+transport wiring is the remaining integration, not new mathematics.
 
 ## Project structure
 
