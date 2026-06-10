@@ -97,8 +97,34 @@ Consensus/
 ├── Quorum.lean    — QuorumSystem, Chosen, quorum_nonempty, agreement, validity
 ├── Majority.lean  — IsMajority, majority_inter, majorityQuorums, majority_agreement, majority_validity
 ├── Reconfig.lean  — Compatible, agreement_cross, Transition, agreement_history (safe reconfiguration)
-└── Certificate.lean — Config, Cert, Valid (decidable), check, cert_agreement, no_conflicting_certs (the executable bridge)
+├── Certificate.lean — Config, Cert, Valid (decidable), check, cert_agreement, no_conflicting_certs (the executable bridge)
+└── Demo.lean      — the checker run live on a 5-agent scenario: accept honest majority, reject minority + forged, survive reconfiguration
 ```
+
+## Running the demo
+
+`Consensus.Demo` executes the verified checker on a concrete five-agent scenario and
+*proves* every verdict (`by decide`, axiom-free). Run it through the Lean interpreter (no
+native build needed):
+
+```bash
+lake env lean Consensus/Demo.lean
+```
+
+```
+── Consensus Seal · certificate checker (verified, running live) ──
+  honest majority  ship  (agents 0,1,2)   ACCEPT  ✓ discharged
+  minority         hold  (agents 3,4)     REJECT  ✗ blocked
+  forged           hold  (agents 0,1,3)   REJECT  ✗ blocked
+  after reconfig   ship  (agents 0,1,2)   ACCEPT  ✓ discharged
+── Theorem (machine-checked): any accepted certificate carries "ship".
+   A conflicting decision can never be discharged. ──
+```
+
+The forged certificate lists a real majority but claims a value two of its voters never
+cast; the checker rejects it. The minority certificate is a genuine vote but not a quorum;
+rejected. And `no_conflicting_certs` proves, on this concrete data, that no `"hold"`
+certificate can ever be accepted once `"ship"` is.
 
 ## Building
 
