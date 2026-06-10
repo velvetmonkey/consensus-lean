@@ -25,6 +25,7 @@ const scenarios = [
   { label: 'minority         hold  (agents 3,4)  ', req: call("hold", [3, 4]),    expect: "deny" },
   { label: 'forged           hold  (agents 0,1,3)', req: call("hold", [0, 1, 3]), expect: "deny" },
   { label: 'no certificate   (bare tools/call)   ', req: { method: "tools/call", params: { name: "deploy" } }, expect: "deny" },
+  { label: 'malformed        (voters not a list) ', req: { method: "tools/call", params: { name: "deploy", _consensusCert: { value: "ship", voters: "0,1,2" } } }, expect: "deny" },
 ];
 
 console.log("── Consensus Seal · sidecar enforcing on live tools/call ──");

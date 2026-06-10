@@ -22,8 +22,15 @@
 /** @typedef {{ value: string, voters: number[] }} Cert */
 /** @typedef {{ config: Config, votes: Record<number, string> }} Policy  trusted, pinned */
 
-/** Strict-majority quorum check, faithful to Lean `Valid`. */
+/** Strict-majority quorum check, faithful to Lean `Valid`.
+ *  Total + fail-closed: any malformed input DENIES (returns false), never throws. */
 export function isValid(/** @type {Policy} */ policy, /** @type {Cert} */ cert) {
+  // Shape guards — a malformed certificate or policy is denied, not an exception.
+  if (cert == null || typeof cert !== "object") return false;
+  if (typeof cert.value !== "string") return false;
+  if (!Array.isArray(cert.voters)) return false;
+  if (policy?.config == null || !Array.isArray(policy.config.members)) return false;
+  if (policy.votes == null || typeof policy.votes !== "object") return false;
   const members = new Set(policy.config.members);
   const voters = cert.voters;
   // 1. voters ⊆ members
