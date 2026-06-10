@@ -55,6 +55,10 @@ strict-majority instance.
 | 12 | `agreement_cross` | **Agreement across a reconfiguration**: values chosen under two compatible configurations must be equal |
 | 13 | `Transition` / `Transition.agreement_preserved` | A membership change bundled with its overlap witness; the change preserves agreement |
 | 14 | `agreement_history` | Agreement across an entire timeline of pairwise-compatible configurations — reconfigure freely, never disagree |
+| 15 | `Bridge.Valid` (+ `Decidable` instance) | **Executable** acceptance: voters are members, form a strict majority, and each one's recorded vote matches the certificate — a runtime check, not an abstract `∀` |
+| 16 | `Bridge.cert_agreement` | **Bridge soundness**: two certificates valid against the same configuration have equal values — the checker can never discharge two conflicting actions |
+| 17 | `Bridge.no_conflicting_certs` | `check` (the runnable `Bool`) never accepts a conflicting pair |
+| 18 | `Bridge.cert_agreement_cross` | Soundness across a reconfiguration, given a decidable per-instance overlap witness — the runtime-checkable form of `Compatible` |
 
 ## The honest boundary
 
@@ -74,13 +78,26 @@ epochs; transitive safety over a long history via per-step value carry-forward (
 Paxos / Raft joint-consensus) is the protocol layer, deliberately left unmodelled. The
 certified heart is: *compatible configurations cannot disagree.*
 
+`Consensus.Certificate` is the **bridge** from proof to runtime. The abstract `agreement`
+is a `∀` over all quorum subsets — a proof obligation no runtime can evaluate. The bridge
+recasts it over concrete data: a `Config` is an explicit member roster, a `Cert` is a
+chosen value plus the voters who carried it, and `Valid` is a **decidable** check (run it
+as the `Bool` `check`). The soundness theorem `cert_agreement` proves that *any two
+certificates the checker accepts against the same configuration must carry the same value*,
+so an MCP Consensus-Seal sidecar can run `check` on every gated action and is guaranteed
+never to discharge two conflicting ones. `cert_agreement_cross` carries the guarantee
+across a reconfiguration given a decidable overlap witness. This is the reject-or-discharge
+core; wiring it into the MCP transport (alongside [mcp-seal](https://github.com/velvetmonkey/mcp-seal))
+is the remaining integration step, not new mathematics.
+
 ## Project structure
 
 ```
 Consensus/
 ├── Quorum.lean    — QuorumSystem, Chosen, quorum_nonempty, agreement, validity
 ├── Majority.lean  — IsMajority, majority_inter, majorityQuorums, majority_agreement, majority_validity
-└── Reconfig.lean  — Compatible, agreement_cross, Transition, agreement_history (safe reconfiguration)
+├── Reconfig.lean  — Compatible, agreement_cross, Transition, agreement_history (safe reconfiguration)
+└── Certificate.lean — Config, Cert, Valid (decidable), check, cert_agreement, no_conflicting_certs (the executable bridge)
 ```
 
 ## Building
