@@ -101,8 +101,27 @@ Consensus/
 ├── Majority.lean  — IsMajority, majority_inter, majorityQuorums, majority_agreement, majority_validity
 ├── Reconfig.lean  — Compatible, agreement_cross, Transition, agreement_history (safe reconfiguration)
 ├── Certificate.lean — Config, Cert, Valid (decidable), check, cert_agreement, no_conflicting_certs (the executable bridge)
-└── Demo.lean      — the checker run live on a 5-agent scenario: accept honest majority, reject minority + forged, survive reconfiguration
+├── Demo.lean      — the checker run live on a 5-agent scenario: accept honest majority, reject minority + forged, survive reconfiguration
+└── Checker.lean   — Mathlib-free List checker (validB) with its OWN agreement proof; compiles to a native binary (lake build checker)
 ```
+
+## The extracted checker (proof → running binary)
+
+`Consensus.Certificate` proves safety over Mathlib `Finset`s, but a Mathlib-linked
+executable would native-compile all of Mathlib (hours). `Consensus.Checker` is the
+**extracted** decision procedure: the same check over plain `List`s, importing only
+`Batteries`, carrying its *own* `agreement` proof (0 sorry). It compiles to a small native
+binary in seconds:
+
+```bash
+lake build checker
+.lake/build/bin/checker "0,1,2,3,4" "0=ship,1=ship,2=ship,3=hold,4=hold" "ship" "0,1,2"   # ALLOW
+```
+
+The [`sidecar/`](sidecar/) gate can now decide by shelling out to this binary
+([`extracted-gate.mjs`](sidecar/extracted-gate.mjs), demo `node sidecar/extracted-demo.mjs`),
+so the gate's decision *is* proved Lean code, not a hand-port. The trusted base shrinks
+from the whole decision predicate to the argument marshalling.
 
 ## Running the demo
 
