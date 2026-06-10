@@ -51,6 +51,10 @@ strict-majority instance.
 | 8 | `majorityQuorums` | The majority quorum system over a finite acceptor population |
 | 9 | `majority_agreement` | Under majority quorums, at most one value is ever chosen |
 | 10 | `majority_validity` | Under majority quorums, a chosen value was voted by someone |
+| 11 | `Compatible` | Two configurations whose quorums all pairwise intersect — the safe-reconfiguration condition |
+| 12 | `agreement_cross` | **Agreement across a reconfiguration**: values chosen under two compatible configurations must be equal |
+| 13 | `Transition` / `Transition.agreement_preserved` | A membership change bundled with its overlap witness; the change preserves agreement |
+| 14 | `agreement_history` | Agreement across an entire timeline of pairwise-compatible configurations — reconfigure freely, never disagree |
 
 ## The honest boundary
 
@@ -62,12 +66,21 @@ The `vote` function also abstracts the per-acceptor single-vote discipline that 
 protocol enforces over time (an acceptor may only ever vote once per decree). What is
 certified here is the invariant every correct protocol rests on: intersection ⇒ agreement.
 
+`Consensus.Reconfig` extends this through **membership change**: agreement is preserved
+across a reconfiguration exactly when the old and new configurations are *compatible*
+(their quorums pairwise intersect), and across an arbitrarily long timeline when the
+configurations are pairwise compatible. The single-vote discipline is still assumed across
+epochs; transitive safety over a long history via per-step value carry-forward (Vertical
+Paxos / Raft joint-consensus) is the protocol layer, deliberately left unmodelled. The
+certified heart is: *compatible configurations cannot disagree.*
+
 ## Project structure
 
 ```
 Consensus/
 ├── Quorum.lean    — QuorumSystem, Chosen, quorum_nonempty, agreement, validity
-└── Majority.lean  — IsMajority, majority_inter, majorityQuorums, majority_agreement, majority_validity
+├── Majority.lean  — IsMajority, majority_inter, majorityQuorums, majority_agreement, majority_validity
+└── Reconfig.lean  — Compatible, agreement_cross, Transition, agreement_history (safe reconfiguration)
 ```
 
 ## Building
