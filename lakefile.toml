@@ -1,5 +1,5 @@
 name = "consensus-lean"
-defaultTargets = ["Consensus"]
+defaultTargets = ["Consensus", "axiom_check"]
 
 [[require]]
 name = "mathlib"
@@ -10,6 +10,14 @@ rev = "v4.28.0"
 name = "Consensus"
 globs = ["Consensus.+"]
 
+[[lean_lib]]
+name = "Test"
+globs = ["Test.+"]
+
 [[lean_exe]]
 name = "checker"
 root = "CheckerMain"
+
+[[lean_exe]]
+name = "axiom_check"
+root = "Test.Axioms"
