@@ -21,7 +21,7 @@ is the refinement proof: every certificate the running `Bool` gate accepts is
 corollary of the abstract `Finset`-level soundness theorem, not an independent
 re-proof that merely resembles it.
 
-## FROZEN STATEMENTS (Day-1 freeze; proofs follow the review)
+## STATEMENTS (frozen Day 1, proved after the freeze review)
 
 * `configOf (members : List Nat) : Bridge.Config Nat` — the roster as a
   `Finset` (`List.toFinset`). `Bridge.Config` carries no quorum field: its
@@ -56,9 +56,12 @@ artifact, this module proves it is subsumed by the abstract theory, and the
 `Checker.agreement` docstring is re-pointed at `validB_refines` /
 `agreement_via_bridge` so the prose claim is true.
 
-Axiom footprint target for both results: ⊆ {propext, Classical.choice,
-Quot.sound} (probed and recorded at proof time; consensus-lean has no axiom
-gate yet — adding one is separate work, D4).
+Axiom footprints (probed via `#print axioms`, 2026-07-04):
+`validB_refines` and `agreement_via_bridge` both depend on exactly
+[propext, Classical.choice, Quot.sound]; the untouched
+`Checker.agreement` remains [propext, Quot.sound]. No sorryAx, no
+Lean.ofReduceBool. (consensus-lean has no axiom gate yet — adding one is
+separate work, D4.)
 -/
 
 namespace Consensus.CheckerBridge
@@ -81,22 +84,43 @@ as a `Finset`. -/
 def certOf (c : Checker.Cert) : Bridge.Cert Nat String :=
   ⟨c.value, c.voters.toFinset⟩
 
-/-- **The refinement (frozen).** Every certificate the running `Bool` checker
+/-- **The refinement.** Every certificate the running `Bool` checker
 accepts is `Bridge.Valid` under the evident maps: acceptance at the `List`
 level lands inside the abstract `Finset`-level acceptance predicate. -/
 theorem validB_refines (members : List Nat) (votes : Votes) (c : Checker.Cert)
     (h : validB members votes c = true) :
     Bridge.Valid (configOf members) (voteOf votes) (certOf c) := by
-  sorry
+  simp only [validB, Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at h
+  obtain ⟨⟨⟨hnd, hsub⟩, hmaj⟩, hall⟩ := h
+  simp only [Bridge.Valid, configOf, certOf]
+  refine ⟨?_, ?_, ?_⟩
+  · -- membership transports pointwise through toFinset
+    intro a ha
+    rw [List.mem_toFinset] at ha ⊢
+    exact hsub a ha
+  · -- the crux: Nodup gives the voters an EXACT card transport, while the
+    -- possibly-duplicated roster only needs ≤ — the strict inequality
+    -- survives in the required direction
+    have hv : c.voters.toFinset.card = c.voters.length :=
+      List.toFinset_card_of_nodup hnd
+    have hm : members.toFinset.card ≤ members.length :=
+      List.toFinset_card_le members
+    show 2 * c.voters.toFinset.card > members.toFinset.card
+    omega
+  · intro a ha
+    rw [List.mem_toFinset] at ha
+    have := hall a ha
+    simpa [voteOf] using this
 
-/-- **Agreement as a corollary (frozen).** `Checker.agreement`'s exact
+/-- **Agreement as a corollary.** `Checker.agreement`'s exact
 statement, derived from `Bridge.cert_agreement` through `validB_refines` —
 the `List`-level agreement is BACKED BY the abstract quorum-intersection
 theorem, not an independent re-proof. -/
 theorem agreement_via_bridge (members : List Nat) (votes : Votes)
     (c c' : Checker.Cert)
     (h : validB members votes c = true) (h' : validB members votes c' = true) :
-    c.value = c'.value := by
-  sorry
+    c.value = c'.value :=
+  Bridge.cert_agreement (configOf members) (voteOf votes) (certOf c) (certOf c')
+    (validB_refines members votes c h) (validB_refines members votes c' h')
 
 end Consensus.CheckerBridge

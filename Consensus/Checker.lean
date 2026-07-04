@@ -67,9 +67,14 @@ theorem shared (members Q Q' : List Nat)
   omega
 
 /-- **Agreement, on the extracted checker.** If the `Bool` checker accepts two
-certificates against the same roster and votes, they carry the same value. This is
-`Consensus.Bridge.cert_agreement` re-established for the compilable `List` checker, so the
-running binary is covered by a proof rather than by conformance tests alone. -/
+certificates against the same roster and votes, they carry the same value. Proved
+directly at the `List` level so this file stays Mathlib-free; the link to the abstract
+theory is MACHINE-CHECKED in `Consensus.CheckerBridge`:
+`Consensus.CheckerBridge.validB_refines` refines `validB`-acceptance into
+`Consensus.Bridge.Valid`, and `Consensus.CheckerBridge.agreement_via_bridge` re-derives
+this exact statement from `Consensus.Bridge.cert_agreement` — so the running binary is
+covered both by this direct proof and by the quorum-intersection theorem it refines
+into, not by conformance tests alone. -/
 theorem agreement (members : List Nat) (votes : Votes) (c c' : Cert)
     (h : validB members votes c = true) (h' : validB members votes c' = true) :
     c.value = c'.value := by
