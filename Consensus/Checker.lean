@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 consensus-lean contributors. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: consensus-lean contributors
+Copyright (c) 2026 Ben Cassie. All rights reserved.
+Released under MIT license as described in the file LICENSE.
+Authors: Ben Cassie
 -/
 import Batteries
 
