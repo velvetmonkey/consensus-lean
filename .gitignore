@@ -4,4 +4,8 @@
 *.olean
 *.ilean
 *.trace
-lake-manifest.json
+# lake-manifest.json is Lake's LOCKFILE and is deliberately TRACKED. Without it
+# a fresh clone resolves the moving-branch deps to whatever they are that day,
+# so the repo would not record what these proofs were actually checked against.
+# These proofs back the consensus kernel that SHIPS in seal-host. CI cannot
+# build at all without it.

@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# This repo had no CI until 2026-07-15. Its proofs back a kernel that SHIPS:
+# seal-host's deployed runtime closure imports it directly (see PROJECT_MODULES
+# in seal-host/scripts/build_ffi_so.sh), so a break here is a break in the gate.
+#
+# The repo already carried an axiom_check footprint gate and defaultTargets
+# already ran it — but with no CI, nothing ever elaborated it outside a dev box.
+# The gate was real and unwatched.
+#
+# lake build fires the #guard_msgs checks via defaultTargets. The explicit
+# axiom_check run puts the footprint in the log where a human can read it; the
+# grep after it is what actually refuses sorryAx / ofReduceBool.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+      - uses: leanprover/lean-action@v1.5.0
+        with:
+          use-github-cache: false
+          build: false
+      - run: lake build
+      - run: lake exe axiom_check 2>&1 | tee /tmp/axioms.txt
+      - run: "! grep -E 'sorryAx|Lean\\.ofReduceBool' /tmp/axioms.txt"
