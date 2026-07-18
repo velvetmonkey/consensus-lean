@@ -1,5 +1,6 @@
 # consensus-lean
 
+[![thread](https://img.shields.io/badge/%F0%9F%A7%B5-how%20it%20works-1DA1F2)](https://x.com/thevelvetmonke)
 [![CI](https://github.com/velvetmonkey/consensus-lean/actions/workflows/ci.yml/badge.svg)](https://github.com/velvetmonkey/consensus-lean/actions/workflows/ci.yml)
 
 [![Lean 4](https://img.shields.io/badge/Lean-4.28.0-blue)](https://lean-lang.org/)
@@ -16,7 +17,15 @@ quorum intersection — and proved for strict-majority quorums over a finite acc
 
 **Zero sorry statements.** Standard axioms only (`propext`, `Classical.choice`, `Quot.sound`).
 
-## Why it matters
+## What this is, and why it matters
+
+This library isolates the safety core of quorum-based consensus. Its headline theorem, `Consensus.agreement`, proves that if every two quorums intersect, then any two values chosen under the same single-valued vote assignment must be equal. The strict-majority instance is also proved, so the abstract result applies to the familiar rule that more than half of the acceptors form a quorum.
+
+Why care about such a compact theorem? Quorum intersection is the invariant that prevents split-brain decisions. The repository also connects the abstract proof to a decidable certificate checker, with proved soundness that two accepted certificates against the same configuration cannot carry conflicting values.
+
+This is safety, not a complete consensus protocol. It assumes that each acceptor has at most one recorded vote in the modeled decree, and the reconfiguration results retain a shared single-vote assignment across configurations. Ballots, rounds, leader election, network behavior, value carry-forward, liveness, and termination are outside the model.
+
+## Background and motivation
 
 Consensus (the CP problem) and convergence (the AP property of CRDTs) are different
 guarantees, and conflating them is a classic error. CRDTs converge precisely by *avoiding*
